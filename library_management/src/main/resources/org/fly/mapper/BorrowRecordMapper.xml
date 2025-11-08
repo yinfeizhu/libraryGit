@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fly.mapper.BorrowRecordMapper">
+
+    <select id="selectPage" resultType="org.fly.entity.BorrowRecord">
+        select br.*,ba.barcode as book_barcode,
+            (select a.name from user a where a.id = br.operator_id) as operator_name,
+            r.name as reader_name,r.phone as reader_phone,br2.title as book_title
+                    from borrow_record br
+                    left join book_admin ba on br.book_admin_id=ba.id
+                    left join user r on br.reader_id = r.id
+                    left join book_reader br2 on ba.book_code=br2.code
+         <where>
+                 <if test="readerName != null and readerName != ''">
+                     r.name like concat('%',#{readerName},'%')
+                 </if>
+                 <if test="bookBarcode != null and bookBarcode != ''">
+                     and ba.barcode like concat('%',#{bookBarcode},'%')
+                 </if>
+                 <if test="bookTitle != null and bookTitle != ''">
+                     and br2.title like concat('%',#{bookTitle},'%')
+                 </if>
+        </where>
+        order by br.borrow_time desc
+    </select>
+
+    <insert id="add">
+        insert into borrow_record(reader_id,book_admin_id,borrow_time,due_time,operator_id)
+        values(#{readerId},#{bookAdminId},#{borrowTime},#{dueTime},#{operatorId})
+    </insert>
+    <!--更新还书时间-->
+    <update id="update">
+        update borrow_record
+        <set>
+            <if test="returnTime != null">
+                return_time= #{returnTime},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <delete id="deleteByIds">
+        delete from borrow_record where id in
+        <foreach item="id" collection="ids" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getById" resultType="org.fly.entity.BorrowRecord">
+        select br.*,ba.barcode as book_barcode,
+               (select a.name from user a where a.id = br.operator_id) as operator_name,
+               r.name as reader_name,r.phone as reader_phone,br2.title as book_title
+        from borrow_record br
+                 left join book_admin ba on br.book_admin_id=ba.id
+                 left join user r on br.reader_id = r.id
+                 left join book_reader br2 on ba.book_code=br2.code
+        where br.id=#{id}
+    </select>
+<!--    统计应还时间比现在时间差3天以内的图书-->
+    <select id="getSoonExpire" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM borrow_record
+        WHERE return_time IS NULL
+          AND due_time >= NOW()
+          AND due_time &lt; DATE_ADD(NOW(), INTERVAL 3 DAY)
+    </select>
+
+    <select id="getHotBookData" resultType="org.fly.entity.HotBook">
+        select br2.title as book_title,
+               ba.author as book_author,
+               br2.cover_image as book_cover,
+               br2.description as book_description,
+               count(br.id) as count
+        from borrow_record br
+                 left join book_admin ba on br.book_admin_id = ba.id
+                 left join book_reader br2 on ba.book_code=br2.code
+        group by br2.title,ba.author,br2.cover_image,br2.description order by count desc limit 4;
+    </select>
+
+    <select id="getOverdue" resultType="java.lang.Object">
+        select count(1) as overdue from borrow_record where return_time is null and due_time &lt; now()
+    </select>
+</mapper>

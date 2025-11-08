@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fly.mapper.BookReaderMapper">
+    <!--    封装所有字段-->
+    <resultMap id="BaseResultMap" type="org.fly.entity.BookReader">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="code" column="code" jdbcType="INTEGER"/>
+        <result property="coverImage" column="cover_image" jdbcType="VARCHAR"/>
+        <result property="publisher" column="publisher" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="category" column="category" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="location" column="location" jdbcType="VARCHAR"/>
+        <result property="bookAuthor" column="book_author" jdbcType="VARCHAR"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result column="acquire_date" property="acquireDate"/>
+        <result column="available_num" property="availableNum"/>
+    </resultMap>
+    <!--    分页查询-->
+    <select id="listPage" resultMap="BaseResultMap">
+        SELECT
+        br.*,
+        (SELECT ba.author FROM book_admin ba WHERE ba.book_code = br.code LIMIT 1) as book_author,
+        (SELECT COUNT(*) FROM book_admin ba3 WHERE ba3.book_code = br.code AND ba3.status = 1) as available_num
+        FROM book_reader br
+        <where>
+            <if test="bookTitle!= null and bookTitle != ''">
+                br.title like concat('%',#{bookTitle},'%')
+            </if>
+            <if test="category != null and category != ''">
+                and br.category like concat('%',#{category},'%')
+            </if>
+        </where>
+        order by br.update_time desc
+    </select>
+    <!--    更新数据-->
+    <update id="updateById" parameterType="org.fly.entity.BookReader">
+        update book_reader
+         <set>
+             <if test="code != null and code !='' ">
+                 code=#{code},
+             </if>
+             <if test="title != null and title !='' ">
+                 title= #{title},
+             </if>
+              <if test="coverImage != null and coverImage !='' ">
+                 cover_image= #{coverImage},
+             </if>
+              <if test="location != null and location !='' ">
+                 location= #{location},
+             </if>
+             <if test="description != null and description !='' ">
+                 description= #{description},
+             </if>
+             <if test="publisher != null and publisher !='' ">
+                 publisher= #{publisher},
+             </if>
+              <if test="acquireDate != null ">
+                 acquire_date= #{acquireDate},
+             </if>
+              <if test="category != null and category !='' ">
+                 category= #{category},
+             </if>
+              <if test="updateTime != null  ">
+                 update_time= #{updateTime}
+             </if>
+              where id=#{id}
+         </set>
+    </update>
+    <!--    添加数据-->
+    <insert id="add" parameterType="org.fly.entity.BookReader">
+        insert into book_reader(code,title,cover_image,publisher,description,location,acquire_date,category,create_time,update_time)
+        values(#{code},#{title},#{coverImage},#{publisher},#{description},#{location},#{acquireDate},#{category},#{createTime},#{updateTime})
+    </insert>
+
+    <delete id="deleteByIds">
+        delete from book_reader where id in
+        <foreach item="id"  collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!--根据id查询-->
+    <select id="getById" resultMap="BaseResultMap">
+        SELECT
+            br.*,
+            (SELECT ba.author FROM book_admin ba WHERE ba.book_code = br.code LIMIT 1) as book_author,
+            (SELECT COUNT(*) FROM book_admin ba3 WHERE ba3.book_code = br.code AND ba3.status = 1) as available_num
+        FROM book_reader br where br.id=#{id}
+    </select>
+    <!--    统计每个类别有多少种书（不关心副本数量）-->
+    <select id="selectBookTypeData" resultType="java.util.Map">
+        select category as name,
+               count(*) as  num
+            from book_reader
+            group by category
+    </select>
+</mapper>

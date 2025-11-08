@@ -1,0 +1,12 @@
+/logback/
+# IDE
+.idea/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# Build outputs
+target/
+build/

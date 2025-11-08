@@ -1,0 +1,48 @@
+<configuration debug="false">
+    <!-- 一、日志文件存放的地址,可以更改 -->
+    <!--<property name="LOG_HOME" value="E:\develop\idea\workspace\fly_personal_develop\library_web_management\logback"/>-->
+    <property name="LOG_HOME" value="/usr/local/app/library-app"/>
+    <!-- 这里更改 -->
+    <!-- 二、日志输出到控制台的代码 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 刷新时间 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} - %msg%n</pattern>
+        </encoder>
+
+        <encoder>
+        <!-- %d表示日期时间，%thread表示线程名，%-5level表示级别从左限时5个字符宽度，%logger显示日志记录器的名称，%msg记录传入信息,%n表示换行符-->
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <!-- 三、日志输出到本地文件的代码 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 当文件到达多大就自动新建一个文件继续存放数据 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 日志文件存放地址 -->
+            <fileNamePattern>${LOG_HOME}/library-%d{yyyy-MM-dd}.%i.log </fileNamePattern>
+            <!-- 日志文件大小 -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- 保留的日志文件数 -->
+            <MaxHistory>60</MaxHistory>
+        </rollingPolicy>
+        <!-- 刷新时间 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} - [%thread] %-5level %logger{50} -%msg%n</pattern>
+        </encoder>
+    </appender>
+<!--    &lt;!&ndash; 禁用状态警告warn日志，控制台不输出警告 &ndash;&gt;-->
+<!--    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />-->
+
+
+    <!-- 四、总控制开关的代码 -->
+    <root level="info">
+        <!-- 输出最低级别，高于等于都这个级别都会输出，默认就是DEBUG。TRACE<DEBUG<INFO<WARN<ERROR -->
+        <appender-ref ref="STDOUT"/>
+        <!-- 输出到控制台，不想输出到控制台可以删掉 -->
+        <appender-ref ref="FILE"/>
+        <!-- 输出本地磁盘文件夹中，不想输出到文件夹中可以删掉 -->
+
+    </root>
+
+</configuration>

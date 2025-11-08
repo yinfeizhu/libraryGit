@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fly.mapper.BookAdminMapper">
+    <!--分页查询-->
+    <select id="listPage" resultType="org.fly.entity.BookAdmin">
+        select ba.*,a.name as operator_name,br.location as book_location,
+        br.title as book_title from book_admin ba
+        left join user a on ba.update_admin = a.id
+        left join book_reader br on ba.book_code = br.code
+        <where>
+            <if test="bookTitle != null and bookTitle != ''">
+                br.title like concat('%',#{bookTitle},'%')
+            </if>
+            <if test="barcode != null and barcode != ''">
+                and barcode like concat('%',#{barcode},'%')
+            </if>
+            <if test="status != null and status != ''">
+                and ba.status = #{status}
+            </if>
+        </where>
+        order by ba.update_time desc
+    </select>
+
+    <!--更新-->
+    <update id="update">
+        update book_admin
+        <set>
+            <if test="bookCode != null and bookCode !=''">
+                book_code = #{bookCode},
+            </if>
+            <if test="author != null and author != ''">
+                author = #{author},
+            </if>
+            <if test="barcode != null and barcode != ''">
+                barcode = #{barcode},
+            </if>
+            <if test="price != null and price != ''">
+                price = #{price},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="publishDate != null">
+                publish_date = #{publishDate},
+            </if>
+            <if test="supplier != null and supplier != ''">
+                supplier = #{supplier},
+            </if>
+            <if test="updateAdmin != null and updateAdmin !=''">
+                update_admin = #{updateAdmin},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <!--添加-->
+    <insert id="add">
+        insert into book_admin(book_code,author,barcode,price,status,publish_date,supplier,update_admin,create_time,update_time)
+        values(#{bookCode},#{author},#{barcode},#{price},#{status}, #{publishDate},#{supplier},#{updateAdmin},#{createTime},#{updateTime})
+    </insert>
+<!--    在循环开始前添加左括号 (-->
+<!--    close=")"：在循环结束后添加右括号 )-->
+<!--    separator=","：在每个元素之间添加逗号 , 效果（1，2，3）-->
+    <!--    批量删除-->
+    <delete id="deleteByIds">
+        delete from book_admin where id in
+        <foreach item="id" collection="ids" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!--根据id查询-->
+    <select id="getById" resultType="org.fly.entity.BookAdmin">
+        select ba.*,a.name as operator_name,br.location as book_location,
+               br.title as book_title from book_admin ba
+               left join user a on ba.update_admin = a.id
+               left join book_reader br on ba.book_code = br.code
+        where ba.id = #{id}
+    </select>
+    <!--   统计所有书籍状态-->
+    <select id="selectBookStatusData" resultType="java.util.Map">
+        select case
+                   when status=1 then '在馆'
+                   when status=2 then '借出'
+                   when status=3 then '损坏'
+                   when status=4 then '丢失'
+            end as name
+             ,count(1) as num
+        from book_admin
+        group by status
+    </select>
+
+    <select id="getBookCount" resultType="java.lang.Object">
+        select count(1) from book_admin
+        where status != 4
+    </select>
+<!--    最近一周的新增书籍数-->
+    <select id="getNewBookCount" resultType="java.lang.Object">
+        select count(1) from book_admin
+        where create_time >= DATE_SUB(CURDATE(),INTERVAL 7 DAY)
+    </select>
+</mapper>

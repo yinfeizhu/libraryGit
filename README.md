@@ -120,4 +120,4 @@
 六、启动与部署
    启动入口：LibraryManagementApplication（main方法启动 Spring Boot 应用）
    构建方式：通过 Maven 打包（spring-boot-maven-plugin），生成可执行 JAR 包
-   环境要求：JDK 17+，MySQL 5.7+（兼容 8.0）# 图书馆管理系统项目说明（优化版）
+   环境要求：JDK 17+，MySQL 5.7+（兼容 8.0）# 图书馆管理系统项目说明

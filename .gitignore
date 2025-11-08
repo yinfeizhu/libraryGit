@@ -1,7 +1,4 @@
 /logback/
-# IDE
-.idea/
-*.iml
 
 # Logs
 *.log

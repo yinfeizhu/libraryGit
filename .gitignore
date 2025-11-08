@@ -7,3 +7,6 @@ logs/
 # Build outputs
 target/
 build/
+
+# 前端依赖忽略
+frontend/node_modules/
